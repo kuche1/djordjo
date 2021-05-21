@@ -1,34 +1,57 @@
 #!/usr/bin/env python3
 
 import requests
+import tempfile
+import subprocess
+import shlex
 
 import bs4
 
 
-URL = 'https://www.pizzadjordjo.com/?page={}'
+BASE_URL = 'https://www.pizzadjordjo.com/'
+URL = BASE_URL + '?page={}'
 FIRST_PAGE = URL.format(1)
 
 filter_ing = ['пушено пилешко филе']
 
 
 class Pizza:
-    def __init__(s, name, ing, weight, size, price):
+    def __init__(s, name, ing, weight, size, price, image_link):
         s.name = name
         s.ing = ing
         s.weight = weight
         s.size = size
         s.price = price
         s.value = weight / price
+        s.image_link = image_link
+
+        s.image_cached = False
+        s.image_path = None
+
+    def show_info(s):
+        print(s)
+
+    def show_image(s):
+        if not s.image_cached:
+            with tempfile.NamedTemporaryFile(delete=False) as f:
+                f.write(get_response(s.image_link))
+                s.image_path = f.name
+        display_image(s.image_path)
+
     def __repr__(s):
         res = f'''{s.value} -> {s.name}
+\t{s.size}
 \t{s.ing}
 \t{s.weight}
-\t{s.size}
 \t{s.price}
+\t{s.image_link}
 '''
         return res
-        
 
+
+def display_image(path):
+    # viu icat
+    subprocess.call(shlex.join(['viu', path]), shell=True)
 
 def get_response(url):
     page = requests.get(url)
@@ -106,7 +129,14 @@ for page in pages_data:
         price = price[:-len(postfix)]
         price = float(price)
 
-        pizzas[pizza_ind] = Pizza(name, ing, weight, size, price)
+        image = pictures = soup.find(class_='img-responsive', title=name)
+        if image == None:
+            #image_link = 'error'
+            image = pictures = soup.find(class_='img-responsive', title=' '+name)
+        image = image['src']
+        image_link = BASE_URL + image
+        
+        pizzas[pizza_ind] = Pizza(name, ing, weight, size, price, image_link)
 
 
 for ind, pizza in reversed(list(enumerate(pizzas))):
@@ -121,7 +151,8 @@ for ind, pizza in reversed(list(enumerate(pizzas))):
 pizzas.sort(reverse=True, key=lambda p:p.value)
 
 for pizza in pizzas:
-    print(pizza)
+    pizza.show_info()
+    pizza.show_image()
     input()
 
 
