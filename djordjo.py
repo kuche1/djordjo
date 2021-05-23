@@ -9,16 +9,16 @@ import bs4
 
 
 BASE_URL = 'https://www.pizzadjordjo.com/'
-URL = BASE_URL + '?page={}'
+URL = BASE_URL + '/menu/pici' + '?page={}'
 FIRST_PAGE = URL.format(1)
 
 filter_ing = ['пушено пилешко филе']
 
 
 class Pizza:
-    def __init__(s, name, ing, weight, size, price, image_link):
+    def __init__(s, name, ings, weight, size, price, image_link):
         s.name = name
-        s.ing = ing
+        s.ings = ings
         s.weight = weight
         s.size = size
         s.price = price
@@ -27,6 +27,18 @@ class Pizza:
 
         s.image_cached = False
         s.image_path = None
+
+    def __repr__(s):
+        return f'''{s.value} -> {s.name}
+\t{s.size}
+\t{s.ings}
+\t{s.weight}
+\t{s.price}
+\t{s.image_link}
+'''
+
+    def contains(s, ing):
+        return ing in s.ings
 
     def show_info(s):
         print(s)
@@ -37,17 +49,7 @@ class Pizza:
                 f.write(get_response(s.image_link))
                 s.image_path = f.name
         display_image(s.image_path)
-
-    def __repr__(s):
-        res = f'''{s.value} -> {s.name}
-\t{s.size}
-\t{s.ing}
-\t{s.weight}
-\t{s.price}
-\t{s.image_link}
-'''
-        return res
-
+    
 
 def display_image(path):
     # viu icat
@@ -92,7 +94,6 @@ for page in pages_data:
 
     for pizza_ind, pizza in enumerate(pizzas):
         name = pizza.find(class_='product-name').text.strip()
-        #print(name)
         
         ings = pizza.find_all(class_='product-ingredients')
         for ind, ing in reversed(list(enumerate(ings))):
@@ -102,16 +103,17 @@ for page in pages_data:
             else:
                 ing = ing.split(', ')
                 ings[ind] = ing
+        
         l = len(ings)
         if l == 0:
-            ing = 'NO_DESC'
+            ings = ['NO_DESC']
         elif l == 1:
-            ing = ings[0]
+            ings = ings[0]
         else:
-            ing = sum(ings, [])
-            
-        for ind,_ing in enumerate(ing):  
-            ing[ind] = _ing.replace('\n', ' ; ')
+            ings = sum(ings, [])
+
+        for ind,_ing in enumerate(ings):
+            ings[ind] = _ing.replace('\n', ' ; ')
 
 
         weight, size, price = pizza.find_all(class_='row product-unit')[-1].text.split('\n')[1:4]
@@ -136,12 +138,12 @@ for page in pages_data:
         image = image['src']
         image_link = BASE_URL + image
         
-        pizzas[pizza_ind] = Pizza(name, ing, weight, size, price, image_link)
+        pizzas[pizza_ind] = Pizza(name, ings, weight, size, price, image_link)
 
 
 for ind, pizza in reversed(list(enumerate(pizzas))):
     for ing in filter_ing:
-        if ing in pizza.ing:
+        if pizza.contains(ing):
             break
     else:
         continue
