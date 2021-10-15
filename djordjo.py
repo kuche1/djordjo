@@ -164,10 +164,23 @@ for ind, pizza in reversed(list(enumerate(pizzas))):
 
 pizzas.sort(reverse=True, key=lambda p:p.value)
 
-for pizza in pizzas:
+ind = 0
+ind_change = 1
+while True:
+    ind += ind_change
+    if ind < 0:
+        ind = 0
+    elif ind >= len(pizzas):
+        ind = len(pizzas) - 1
+
+    pizza = pizzas[ind]
+
     pizza.show_info()
     pizza.show_image()
-    input()
 
-
+    com = input()
+    if com == 'n':
+        ind_change = 1
+    if com == 'p':
+        ind_change = -1
 
