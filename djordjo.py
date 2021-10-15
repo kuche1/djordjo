@@ -4,6 +4,7 @@ import requests
 import tempfile
 import subprocess
 import shlex
+import sys
 
 import bs4
 
@@ -53,7 +54,18 @@ class Pizza:
 
 def display_image(path):
     # viu icat
-    subprocess.call(shlex.join(['viu', path]), shell=True)
+    DISPLAY_PROGRAM = 'viu'
+    ret_code = subprocess.call(shlex.join([DISPLAY_PROGRAM, path]), shell=True)
+    if ret_code != 0:
+        try:
+            subprocess.call(shlex.join([DISPLAY_PROGRAM, '--version']))
+        except FileNotFoundError:
+            print(f'program not found: {DISPLAY_PROGRAM}')
+            print("please install, possible solutions:")
+            print(f"\tsudo pacman -S --needed {DISPLAY_PROGRAM}")
+            print(f"\tsudo apt install {DISPLAY_PROGRAM}")
+            sys.exit(1)
+        raise Exception("this should never happen")
 
 def get_response(url):
     page = requests.get(url)
