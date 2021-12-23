@@ -13,7 +13,7 @@ BASE_URL = 'https://www.pizzadjordjo.com/'
 URL = BASE_URL + '/menu/pici' + '?page={}'
 FIRST_PAGE = URL.format(1)
 
-filter_ing = ['пушено пилешко филе']
+filter_ing = [] #['пушено пилешко филе']
 
 
 class Pizza:
@@ -99,6 +99,7 @@ pages_data = []
 for page_num in range(1, pages+1):
     pages_data.append(get_response(URL.format(page_num)))
 
+all_pizzas = []
 for page in pages_data:
     soup = bs4.BeautifulSoup(page, "lxml")
 
@@ -152,6 +153,9 @@ for page in pages_data:
         
         pizzas[pizza_ind] = Pizza(name, ings, weight, size, price, image_link)
 
+    all_pizzas.extend(pizzas)
+
+pizzas = all_pizzas
 
 for ind, pizza in reversed(list(enumerate(pizzas))):
     for ing in filter_ing:
